@@ -7,7 +7,7 @@ import re
 import os
 
 #Collecting Useful data from the Converted Text take from the Image
-def get_useful_info(words, j):
+def get_useful_info(words, filePath):
     store_name = words[0]
     store_address = "".join(words[1:4])
     date_keywords = ["Date","Purchase Date","Time"]
@@ -70,14 +70,14 @@ def get_useful_info(words, j):
     headers = ['store_name', 'Store Address',"Date & Time","Invoice No.","Total","Items"]
     t = PrettyTable(headers)
     t.add_row(data)     #Loop this part to add more data to table
-    if not os.path.exists('../Data/'):
-        os.makedirs('../Data/')
-    fp = open('../Data/opt' + str(j) + '.txt', 'w')
+    if not os.path.exists('/Data/'):
+        os.makedirs('/Data/')
+    fp = open('/Data/opt(' + os.path.splitext(os.path.basename(filePath))[0] + ').txt', 'w')
     fp.write(str(t))
     fp.close()
 
 #Function to convert image to text
-def func(filePath, j):
+def func(filePath):
     image = cv2.imread(filePath)
     #cv2.imshow("Original", image)
     
@@ -88,32 +88,41 @@ def func(filePath, j):
     words = text.split("\n")
     #cv2.waitKey(0)
     #Writing the converted text to file
-    if not os.path.exists('../OCR/'):
-        os.makedirs('../OCR/')
-    f = open("../OCR/result" + str(j) + ".txt", "w")
+    if not os.path.exists('/OCR/'):
+        os.makedirs('/OCR/')
+    f = open("/OCR/result" + os.path.splitext(os.path.basename(filePath))[0] + ".txt", "w")
     for k in words:
         f.write(k + "\n")
     f.close()
-    get_useful_info(words, j)
+    get_useful_info(words, filePath)
 
 #Importing libraries for GUI
-import os
 from tkinter import filedialog
 import tkinter as tk
 
 #Function to get the folder of the dataset
-def browse_button():
+def browse_button_file():
+    filename = filedialog.askopenfilename()
+    #Checking all files present in the selected directory
+    func(filename)
+    root.destroy()  #Destroy's the GUI once execution has completed
+
+def browse_button_folder():
     filename = filedialog.askdirectory()
-    j = 0
     #Checking all files present in the selected directory
     for i in os.listdir(filename):
-        func(filename + "/" + i, j)
-        j += 1
+        func(filename + "/" + i)
     root.destroy()  #Destroy's the GUI once execution has completed
 
 #Creating GUI
 root = tk.Tk()
+root.minsize(350,150)
+root.title('RandomCoders')
 #Button to select folder
-buttonbrowse = tk.Button(root, text="Browse", command = browse_button).grid(row=0, column=3)
+lblFolder = tk.Label(root, text = "For Processing Batch File(s), Click on Upload Folder").grid(row = 7, column = 340, pady = 5, padx = 50)
+buttonbrowse = tk.Button(root, text="Upload Folder", command = browse_button_folder).grid(row = 10, column = 340, pady = 15, padx = 50)
+
+lblFolder = tk.Label(root, text = "For Processing single File, Click on Upload File").grid(row = 13, column = 340, pady = 5, padx = 50)
+buttonbrowse = tk.Button(root, text="Upload File", command = browse_button_file).grid(row = 18, column = 340, pady = 15, padx = 50)
 
 root.mainloop()
